@@ -11,7 +11,10 @@ def canonical(url):
 
 def parse_rss(data, source, now):
     if len(data)>2_000_000 or b'<!DOCTYPE' in data.upper() or b'<!ENTITY' in data.upper(): raise ValueError('unsafe XML')
-    root=ET.fromstring(data)
+    # Reject non-UTF-8 encodings and NUL before parsing.
+    decoded=data.decode("utf-8-sig")
+    if "\x00" in decoded or "<!DOCTYPE" in decoded.upper() or "<!ENTITY" in decoded.upper(): raise ValueError("unsafe XML")
+    root=ET.fromstring(decoded)
     out=[]
     for item in root.findall('./channel/item'):
         try:
