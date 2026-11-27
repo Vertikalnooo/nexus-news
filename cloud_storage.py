@@ -3,7 +3,7 @@ import json
 class PostgresStorage:
     def __init__(self,dsn):
         import psycopg
-        self.db=psycopg.connect(dsn,sslmode="verify-full",connect_timeout=10)
+        self.db=psycopg.connect(dsn,sslmode="verify-full",connect_timeout=10,autocommit=True)
     def reserve_run(self):
         with self.db.transaction():
             row=self.db.execute("""
