@@ -1,0 +1,27 @@
+name: PostgreSQL integration
+on: [pull_request]
+permissions:
+  contents: read
+jobs:
+  postgres:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install 'psycopg[binary]>=3.2,<4'
+      - name: Isolated TLS database
+        run: |
+          mkdir -p "$RUNNER_TEMP/nexus-pg"
+          cd "$RUNNER_TEMP/nexus-pg"
+          openssl req -x509 -newkey rsa:2048 -nodes -days 1 -subj /CN=localhost -addext subjectAltName=DNS:localhost -keyout server.key -out server.crt
+          chmod 600 server.key
+          docker run -d --name nexus-pg -p 127.0.0.1:5432:5432 -e POSTGRES_PASSWORD=local-test-only -v "$PWD:/certs:ro" postgres:17 sh -c 'cp /certs/server.key /tmp/server.key; cp /certs/server.crt /tmp/server.crt; chown postgres:postgres /tmp/server.key /tmp/server.crt; chmod 600 /tmp/server.key; exec docker-entrypoint.sh postgres -c ssl=on -c ssl_cert_file=/tmp/server.crt -c ssl_key_file=/tmp/server.key'
+          for i in {1..30}; do docker exec nexus-pg pg_isready -U postgres && break; sleep 2; done
+          docker exec -i nexus-pg psql -v ON_ERROR_STOP=1 -U postgres < "$GITHUB_WORKSPACE/schema.sql"
+      - run: python -m unittest -v test_postgres_integration
+        env:
+          NEXUS_TEST_DSN: postgresql://postgres:local-test-only@localhost:5432/postgres
+          PGSSLROOTCERT: ${{ runner.temp }}/nexus-pg/server.crt
