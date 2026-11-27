@@ -1,0 +1,6 @@
+# Direct dependency pins; full transitive hash lock still required.
+psycopg[binary]==3.2.9
+transformers==4.51.3
+torch==2.6.0
+sentencepiece==0.2.0
+sacremoses==0.1.1
