@@ -25,7 +25,11 @@ jobs:
         run: |
           docker exec -i nexus-pg psql -v ON_ERROR_STOP=1 -U postgres < migrations/002_run_budget.sql
           docker exec -i nexus-pg psql -v ON_ERROR_STOP=1 -U postgres < migrations/002_run_budget.sql
-      - run: python -m unittest -v test_postgres_integration
+      - name: Apply restricted role migrations
+        run: |
+          docker exec -i nexus-pg psql -v ON_ERROR_STOP=1 -U postgres < migrations/003_preview_roles.sql
+          docker exec -i nexus-pg psql -v ON_ERROR_STOP=1 -U postgres < migrations/004_budget_function.sql
+      - run: python -m unittest -v test_postgres_integration test_roles
         env:
           NEXUS_TEST_DSN: postgresql://postgres:local-test-only@localhost:5432/postgres
           PGSSLROOTCERT: ${{ runner.temp }}/nexus-pg/server.crt
