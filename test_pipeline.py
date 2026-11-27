@@ -20,3 +20,15 @@ class PipelineTests(unittest.TestCase):
         s=Storage(":memory:")
         self.assertEqual(run([dict(name="A",url="https://example.org",category="world")],s,lambda u:rss(),now=NOW,threshold=0)["saved"],0)
         s.close()
+
+    def test_preview_and_cap(self):
+        s=Storage(":memory:")
+        try:
+            sources=[dict(name="A",url="https://example.org",category="world")]
+            result=run(sources,s,lambda u:rss(),lambda t:"<b>Новость</b>",now=NOW,threshold=0,max_translations=1)
+            self.assertEqual(result["translation_attempts"],1)
+            self.assertFalse(s.pending()[0]["preview"]["sent"])
+            self.assertIn("&lt;b&gt;",s.pending()[0]["preview"]["text"])
+            result=run(sources,s,lambda u:rss(),lambda t:self.fail("must not translate"),now=NOW,threshold=0,max_translations=0)
+            self.assertEqual(result["translation_attempts"],0)
+        finally: s.close()
