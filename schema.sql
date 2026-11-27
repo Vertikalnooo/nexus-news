@@ -11,3 +11,5 @@ CREATE TABLE IF NOT EXISTS nexus.run_budget (
  day_utc date NOT NULL,
  runs integer NOT NULL CHECK (runs BETWEEN 1 AND 24)
 );
+
+CREATE UNIQUE INDEX IF NOT EXISTS draft_title_key ON nexus.drafts ((payload->>'title_key'));
