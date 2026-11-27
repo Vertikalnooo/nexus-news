@@ -16,7 +16,7 @@ jobs:
       - run: pip install 'torch==2.13.0+cpu' --index-url https://download.pytorch.org/whl/cpu
       - run: pip install 'transformers==5.10.0' sentencepiece==0.2.1 sacremoses==0.1.1
       - run: |
-          python -c "from huggingface_hub import snapshot_download, HfApi; import re; revision=HfApi().model_info('Helsinki-NLP/opus-mt-en-ru').sha; assert re.fullmatch('[0-9a-f]{40}',revision); print('OPUS_REVISION='+revision); snapshot_download('Helsinki-NLP/opus-mt-en-ru',revision=revision,local_dir='model',allow_patterns=['*.json','*.spm','*.bin','*.safetensors'])"
+          python scripts/prepare_model.py
           python -c "from providers import Opus; import re; t=Opus('model')('The central bank kept interest rates unchanged.'); assert re.search('[А-Яа-я]',t); print(t)"
 
       - run: python e2e_preview.py
