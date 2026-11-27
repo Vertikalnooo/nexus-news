@@ -21,7 +21,7 @@ jobs:
           docker run -d --name nexus-pg -p 127.0.0.1:5432:5432 -e POSTGRES_PASSWORD=local-test-only -v "$PWD:/certs:ro" postgres:17 sh -c 'cp /certs/server.key /tmp/server.key; cp /certs/server.crt /tmp/server.crt; chown postgres:postgres /tmp/server.key /tmp/server.crt; chmod 600 /tmp/server.key; exec docker-entrypoint.sh postgres -c ssl=on -c ssl_cert_file=/tmp/server.crt -c ssl_key_file=/tmp/server.key'
           for i in {1..30}; do docker exec nexus-pg pg_isready -U postgres && break; sleep 2; done
           docker exec -i nexus-pg psql -v ON_ERROR_STOP=1 -U postgres < "$GITHUB_WORKSPACE/schema.sql"
-      - run: python -m unittest -v test_postgres_integration
+      - name: Repeat migration\n        run: |\n          docker exec -i nexus-pg psql -v ON_ERROR_STOP=1 -U postgres < migrations/002_run_budget.sql\n          docker exec -i nexus-pg psql -v ON_ERROR_STOP=1 -U postgres < migrations/002_run_budget.sql\n      - run: python -m unittest -v test_postgres_integration
         env:
           NEXUS_TEST_DSN: postgresql://postgres:local-test-only@localhost:5432/postgres
           PGSSLROOTCERT: ${{ runner.temp }}/nexus-pg/server.crt
