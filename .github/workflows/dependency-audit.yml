@@ -1,0 +1,23 @@
+name: Dependency lock and audit
+on: [pull_request]
+permissions:
+  contents: read
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install pip-tools==7.5.0 pip-audit==2.9.0
+      - run: pip-compile --generate-hashes --output-file requirements-preview.lock requirements-preview.in
+      - uses: actions/upload-artifact@v4
+        with:
+          name: preview-dependency-lock
+          path: requirements-preview.lock
+          retention-days: 1
+      - run: pip-audit --require-hashes --disable-pip -r requirements-preview.lock
