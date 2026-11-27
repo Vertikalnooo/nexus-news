@@ -1,0 +1,20 @@
+name: OPUS smoke
+on: [pull_request]
+permissions:
+  contents: read
+jobs:
+  translate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install 'torch>=2.6,<3' --index-url https://download.pytorch.org/whl/cpu
+      - run: pip install 'transformers>=4.48,<5' sentencepiece sacremoses
+      - run: |
+          python -c "from huggingface_hub import snapshot_download; snapshot_download('Helsinki-NLP/opus-mt-en-ru',local_dir='model',allow_patterns=['*.json','*.spm','*.bin','*.safetensors'])"
+          python -c "from providers import Opus; import re; t=Opus('model')('The central bank kept interest rates unchanged.'); assert re.search('[А-Яа-я]',t); print(t)"
