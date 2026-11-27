@@ -1,0 +1,18 @@
+[
+  {
+    "name": "Forex Factory",
+    "website": "https://www.forexfactory.com",
+    "calendar": "https://www.forexfactory.com/calendar",
+    "category": "economy",
+    "enabled": false,
+    "status": "pending_access_verification",
+    "reason": "Direct website and calendar returned HTTP 403; verify permitted machine-readable feed before enabling.",
+    "priority": [
+      "high-impact",
+      "central-bank",
+      "inflation",
+      "employment",
+      "GDP"
+    ]
+  }
+]
