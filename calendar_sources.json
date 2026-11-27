@@ -5,13 +5,15 @@
     "calendar": "https://www.forexfactory.com/calendar",
     "category": "economy",
     "enabled": false,
-    "status": "pending_access_verification",
+    "status": "export_candidate_unverified",
     "reason": "Direct website and calendar returned HTTP 403; verify permitted machine-readable feed before enabling.",
     "priority": [
       "high-impact"
     ],
     "allowed_impact": [
       "high"
-    ]
+    ],
+    "export_url": "https://nfs.faireconomy.media/ff_calendar_thisweek.json",
+    "minimum_poll_seconds": 3600
   }
 ]
