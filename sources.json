@@ -10,11 +10,6 @@
     "category": "economy"
   },
   {
-    "name": "CoinDesk",
-    "url": "https://www.coindesk.com/arc/outboundfeeds/rss/",
-    "category": "crypto"
-  },
-  {
     "name": "TechCrunch",
     "url": "https://techcrunch.com/feed/",
     "category": "technology"
@@ -28,5 +23,10 @@
     "name": "BBC Technology",
     "url": "https://feeds.bbci.co.uk/news/technology/rss.xml",
     "category": "technology"
+  },
+  {
+    "name": "Cointelegraph",
+    "url": "https://cointelegraph.com/rss",
+    "category": "crypto"
   }
 ]
