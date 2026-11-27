@@ -9,10 +9,13 @@ from datetime import datetime,timezone
 def main():
     if os.getenv("NEXUS_PREVIEW_ENABLED")!="true": raise SystemExit("preview disabled")
     dsn=os.environ["NEXUS_DATABASE_URL"]
-    model=Opus(os.environ["NEXUS_OPUS_MODEL"])
     sources=json.loads(Path(__file__).with_name("sources.json").read_text())
     storage=PostgresStorage(dsn)
     try:
+        if not storage.reserve_run():
+            print(json.dumps({"status":"budget_denied"}))
+            return
+        model=Opus(os.environ["NEXUS_OPUS_MODEL"])
         print(json.dumps(run(sources,storage,fetch,fallback=model,now=datetime.now(timezone.utc))))
     finally: storage.close()
 if __name__=="__main__": main()
