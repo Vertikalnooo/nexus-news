@@ -9,3 +9,14 @@ class PostgresTests(unittest.TestCase):
         self.assertTrue(s.save(draft)); s.close()
         s=PostgresStorage(dsn)
         self.assertFalse(s.save(draft)); self.assertIn(draft,s.pending()); s.close()
+
+    def test_atomic_budget(self):
+        from concurrent.futures import ThreadPoolExecutor
+        dsn=os.environ["NEXUS_TEST_DSN"]
+        def attempt(_):
+            s=PostgresStorage(dsn)
+            try: return s.reserve_run()
+            finally: s.close()
+        with ThreadPoolExecutor(max_workers=8) as pool:
+            self.assertEqual(sum(pool.map(attempt,range(8))),1)
+        self.assertFalse(attempt(0))
