@@ -15,7 +15,7 @@ jobs:
           python-version: '3.12'
       - run: python -m pip install pip==25.2
       - run: pip install pip-tools==7.5.0 pip-audit==2.9.0
-      - run: pip-compile --extra-index-url https://download.pytorch.org/whl/cpu --generate-hashes --output-file requirements-preview.lock requirements-preview.in
+      - run: pip-compile --extra-index-url https://download.pytorch.org/whl/cpu --allow-unsafe --generate-hashes --output-file requirements-preview.lock requirements-preview.in
       - uses: actions/upload-artifact@v4
         with:
           name: preview-dependency-lock
@@ -23,3 +23,5 @@ jobs:
           retention-days: 1
       - run: pip-audit --require-hashes --disable-pip -r requirements-preview.lock
       - run: bash scripts/prepare_preview.sh
+      - run: .preview-venv/bin/python scripts/prepare_model.py
+      - run: .preview-venv/bin/python e2e_preview.py
