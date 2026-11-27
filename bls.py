@@ -3,7 +3,7 @@ import json
 from decimal import Decimal
 from urllib.request import Request,build_opener
 from collector import NoRedirect
-SERIES={"CPI":"CUSR0000SA0","NFP":"CES0000000001","UNEMPLOYMENT":"LNS14000000"}
+SERIES={"CPI":"CUSR0000SA0","CPI_NSA":"CUUR0000SA0","NFP":"CES0000000001","UNEMPLOYMENT":"LNS14000000"}
 def fetch_observations():
     req=Request("https://api.bls.gov/publicAPI/v2/timeseries/data/",data=json.dumps({"seriesid":list(SERIES.values())}).encode(),headers={"Content-Type":"application/json"},method="POST")
     with build_opener(NoRedirect()).open(req,timeout=20) as response:
