@@ -5,7 +5,7 @@ from publisher import dry_run
 from editor import edit
 from macro import parse_calendar, previews
 from datetime import datetime, timezone
-def run(sources, storage, loader, primary=None, fallback=None, calendar_data=None, now=None, threshold=55, max_translations=10):
+def run(sources, storage, loader, primary=None, fallback=None, calendar_data=None, now=None, threshold=55, max_translations=10, outbox=None):
     now=now or datetime.now(timezone.utc)
     items, failures=collect(sources,loader,now)
     saved=0
@@ -30,4 +30,7 @@ def run(sources, storage, loader, primary=None, fallback=None, calendar_data=Non
             draft["text"]="Экономический календарь: "+event["title"]+" ("+event["currency"]+")\nВремя UTC: "+event["date"]+"\n"+("Ожидается публикация." if event["kind"]=="upcoming" else "Значение календаря (не подтверждено независимо): "+str(event["actual"]))
             draft["preview"]=dry_run(draft)
             saved+=storage.save(draft)
+    if outbox is not None:
+        for draft in storage.pending():
+            outbox.enqueue(draft.get("title_key") or draft["url"],draft["preview"])
     return {"saved":saved,"rendered":rendered,"translation_attempts":attempts,"failed_sources":failures,"publication_enabled":False}
