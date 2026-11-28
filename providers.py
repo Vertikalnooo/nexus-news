@@ -4,11 +4,13 @@ from urllib.request import Request,build_opener
 from collector import NoRedirect
 from editor import gemini_request
 class Gemini:
-    def __init__(self,key,model,*,free_tier_confirmed=False):
+    def __init__(self,key,model,*,free_tier_confirmed=False, reserve=None):
         if not free_tier_confirmed or not key: raise ValueError("free tier must be confirmed")
         if not re.fullmatch(r"gemini-[a-zA-Z0-9.-]+",model): raise ValueError("invalid model")
         self.key,self.model=key,model
+        self.reserve=reserve
     def __call__(self,title):
+        if self.reserve is None or self.reserve() is not True: raise ValueError("Gemini quota unavailable")
         req=Request("https://generativelanguage.googleapis.com/v1beta/models/"+self.model+":generateContent",data=json.dumps(gemini_request({"title":title})).encode(),headers={"Content-Type":"application/json","x-goog-api-key":self.key},method="POST")
         with build_opener(NoRedirect()).open(req,timeout=20) as response:
             raw=response.read(1_000_001)
