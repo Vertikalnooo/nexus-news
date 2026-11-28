@@ -1,5 +1,7 @@
 BEGIN;
 ALTER TABLE nexus.outbox ADD COLUMN claim_hash bytea, ADD COLUMN claim_until timestamptz;
+REVOKE SELECT ON nexus.outbox FROM nexus_mock_worker;
+GRANT SELECT(id,state,message_id) ON nexus.outbox TO nexus_mock_worker;
 GRANT SELECT(claim_hash,claim_until),UPDATE(claim_hash,claim_until) ON nexus.outbox TO nexus_queue_owner;
 REVOKE EXECUTE ON FUNCTION nexus.claim_mock(text),nexus.finish_mock(text,text) FROM nexus_mock_worker;
 CREATE FUNCTION nexus.claim_mock(k text,h bytea) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog,pg_temp AS $$
