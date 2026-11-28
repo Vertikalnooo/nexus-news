@@ -3,6 +3,7 @@ import hashlib,re,unicodedata
 from collector import collect
 from publisher import dry_run
 from editor import edit
+from editorial_gate import eligible_for_review, publication_eligible
 from macro import parse_calendar, previews
 from datetime import datetime, timezone
 def run(sources, storage, loader, primary=None, fallback=None, calendar_data=None, now=None, threshold=55, max_translations=10, outbox=None):
@@ -21,6 +22,8 @@ def run(sources, storage, loader, primary=None, fallback=None, calendar_data=Non
         if draft is not None:
             try: draft["preview"]=dry_run(draft)
             except (ValueError,TypeError,KeyError): continue
+            draft["editorial_checks_passed"]=eligible_for_review(item["title"],draft["text"])
+            draft["publication_eligible"]=publication_eligible(draft)
             draft["title_key"]=key
             rendered+=1
             saved+=storage.save(draft)
@@ -34,5 +37,7 @@ def run(sources, storage, loader, primary=None, fallback=None, calendar_data=Non
         for draft in storage.pending():
             preview=draft.get("preview")
             if not isinstance(preview,dict) or preview.get("mode")!="dry-run" or preview.get("sent") is not False: continue
+            # Existing outbox is mock-only; never confer publication authority.
+            preview=dict(preview, publication_eligible=publication_eligible(draft), review_required=True)
             outbox.enqueue(draft.get("title_key") or draft["url"],preview)
     return {"saved":saved,"rendered":rendered,"translation_attempts":attempts,"failed_sources":failures,"publication_enabled":False}
