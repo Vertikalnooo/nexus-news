@@ -9,3 +9,6 @@ Required gates on final HEAD:
 - Confirm macro preview and RSS end-to-end, persistent dedup, no sends.
 - Verify Neon free quotas and scale-to-zero before any cloud connection. No live activation without owner approval.
 Rollback: leave main unchanged, leave scheduler disabled, discard isolated test database. No cloud migration in this RC.
+
+## Evidence: e4ed22eb
+All seven workflows passed. 49 tests across offline and PostgreSQL, audit no known vulnerabilities, hash-locked installation and pip check passed, fixed OPUS revision bb09c99d180016eac6819df3dae68edb1690fdee, three RSS previews in audited environment, no sends. Audit run 46085190900, artifact 15238907079, archive SHA256 cf046e43430a39ad528fc2bbd2e7a6679c345c894137c028c547b5ca155bd8e7. Calendar 5 high impact, zero actuals; BLS 133 observations. RC preview baseline passes CI but remaining gates above are not waived. See TELEGRAM_ROLLOUT.md.
