@@ -12,3 +12,6 @@ class GateTests(unittest.TestCase):
         self.assertEqual(independent_review("Inflation 3%","Инфляция 4%",lambda *_:True),"rejected")
         self.assertEqual(independent_review("Inflation 3%","Инфляция 3%",lambda *_:True),"candidate_verified")
         self.assertFalse(publication_eligible({"review":"candidate_verified"}))
+    def test_observed_errors(self):
+        for original,translated in [("Capsized tanker","Контейнеры"),("Crypto index ETF","Индекс шифрования ETF"),("Rising bills","Возрастающие купюры"),("Punishing winter","Наказанная зима")]:
+            self.assertFalse(eligible_for_review(original,translated))
