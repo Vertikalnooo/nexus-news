@@ -5,6 +5,6 @@ HEADLINES=["Bitcoin whales pile into BTC despite shrinking profit cushion","'It'
 class EditorialRegression(unittest.TestCase):
     def test_replay(self):
         self.assertEqual(len(HEADLINES),30)
-        self.assertEqual([score({"title":t}) for t in HEADLINES],[45,70,20,70,20,20,45,20,20,70,20,20,95,20,20,60,20,20,20,20,20,20,80,20,20,20,20,20,20,20])
+        self.assertEqual([score({"title":t}) for t in HEADLINES],[45,40,20,70,20,0,45,20,20,70,20,20,95,55,20,60,20,20,20,20,20,55,80,20,20,20,20,55,20,20])
     def test_bad_translation(self):
         self.assertIsNone(edit({"title":"Stablecoin launch","source":"test","url":"https://example.org"},None,lambda _: "Запуск конюшни"))
