@@ -3,7 +3,7 @@ import hashlib,re,unicodedata
 from collector import collect
 from publisher import dry_run
 from editor import edit
-from editorial_gate import eligible_for_review, publication_eligible
+from editorial_gate import eligible_for_review, publication_eligible, independent_review
 from macro import parse_calendar, previews
 from datetime import datetime, timezone
 def run(sources, storage, loader, primary=None, fallback=None, calendar_data=None, now=None, threshold=55, max_translations=10, outbox=None):
@@ -23,6 +23,7 @@ def run(sources, storage, loader, primary=None, fallback=None, calendar_data=Non
             try: draft["preview"]=dry_run(draft)
             except (ValueError,TypeError,KeyError): continue
             draft["editorial_checks_passed"]=eligible_for_review(item["title"],draft["text"])
+            draft["editorial_review"]=independent_review(item["title"],draft["text"])
             draft["publication_eligible"]=publication_eligible(draft)
             draft["title_key"]=key
             rendered+=1
