@@ -26,3 +26,17 @@ class WriteGateTests(unittest.TestCase):
             with connect() as db:
                 db.execute("SET ROLE nexus_preview")
                 self.assertFalse(db.execute("SELECT nexus.save_preview('expired','{\"preview\":{\"mode\":\"dry-run\",\"sent\":false}}')").fetchone()[0])
+
+    def test_deferred_expiry(self):
+        import psycopg
+        def connect(): return psycopg.connect(os.environ["NEXUS_TEST_DSN"],sslmode="verify-full",autocommit=True)
+        with connect() as admin, connect() as worker:
+            admin.execute("DELETE FROM nexus.preview_session")
+            admin.execute("INSERT INTO nexus.preview_session(singleton,starts_at,runs) VALUES(true,clock_timestamp(),1)")
+            worker.execute("SET ROLE nexus_preview")
+            key=str(uuid.uuid4())
+            with self.assertRaises(psycopg.errors.CheckViolation):
+                with worker.transaction():
+                    self.assertTrue(worker.execute("SELECT nexus.enqueue_preview(%s,%s::jsonb)",(key,'{"mode":"dry-run","sent":false}')).fetchone()[0])
+                    admin.execute("UPDATE nexus.preview_session SET starts_at=clock_timestamp()-interval '49 hours'")
+            self.assertIsNone(admin.execute("SELECT id FROM nexus.outbox WHERE id=%s",(key,)).fetchone())
