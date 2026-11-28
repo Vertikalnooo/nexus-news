@@ -1,0 +1,11 @@
+BEGIN;
+CREATE ROLE nexus_switch_guard NOLOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOINHERIT;
+GRANT USAGE,CREATE ON SCHEMA nexus TO nexus_switch_guard;
+GRANT SELECT,UPDATE(enabled) ON nexus.publication_control TO nexus_switch_guard;
+CREATE FUNCTION nexus.lock_publication_switch() RETURNS boolean LANGUAGE sql SECURITY DEFINER SET search_path=pg_catalog,pg_temp AS $$ SELECT enabled FROM nexus.publication_control WHERE singleton FOR SHARE $$;
+ALTER FUNCTION nexus.lock_publication_switch() OWNER TO nexus_switch_guard;
+REVOKE CREATE ON SCHEMA nexus FROM nexus_switch_guard;
+REVOKE ALL ON FUNCTION nexus.lock_publication_switch() FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION nexus.lock_publication_switch() TO nexus_mock_worker;
+GRANT INSERT,SELECT ON nexus.outbox TO nexus_preview;
+COMMIT;
