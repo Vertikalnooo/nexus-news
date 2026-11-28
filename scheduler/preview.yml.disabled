@@ -22,7 +22,7 @@ jobs:
           python-version: '3.12'
       - run: bash scripts/prepare_preview.sh
       - run: .preview-venv/bin/python scripts/prepare_model.py
-      - run: .preview-venv/bin/python runtime.py
+      - run: .preview-venv/bin/python supervisor.py
         env:
           NEXUS_PREVIEW_ENABLED: 'true'
           NEXUS_PREVIEW_START_UTC: ${{ vars.NEXUS_PREVIEW_START_UTC }}
