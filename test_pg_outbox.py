@@ -15,7 +15,9 @@ class PgOutboxTests(unittest.TestCase):
             db.execute("UPDATE nexus.publication_control SET enabled=true")
             try:
                 def worker(i):
-                    with self.connect() as conn: return PgOutbox(conn).dispatch(key,MockTelegram(),approved=True)
+                    with self.connect() as conn:
+                        conn.execute('SET ROLE nexus_mock_worker')
+                        return PgOutbox(conn).dispatch(key,MockTelegram(),approved=True)
                 with ThreadPoolExecutor(max_workers=8) as pool: results=list(pool.map(worker,range(8)))
                 self.assertEqual(results.count("simulated"),1)
                 self.assertEqual(results.count("blocked"),7)
@@ -35,6 +37,8 @@ class PgOutboxTests(unittest.TestCase):
                 self.assertFalse(db.execute("SELECT nexus.lock_publication_switch()").fetchone()[0])
             with self.assertRaises(psycopg.errors.InsufficientPrivilege):
                 db.execute("DELETE FROM nexus.outbox")
+            with self.assertRaises(psycopg.errors.InsufficientPrivilege):
+                db.execute("UPDATE nexus.outbox SET state='pending'")
     def test_switch_lock(self):
         import psycopg
         with self.connect() as a, self.connect() as b:
