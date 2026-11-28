@@ -1,7 +1,10 @@
 """Independent review gate; never authorizes actual publication."""
-import re
+import re, html
 def eligible_for_review(original, translated):
     if not isinstance(original,str) or not isinstance(translated,str): return False
+    original,translated=html.unescape(original),html.unescape(translated)
+    if re.search(r"индекс.{0,15}шифрования|киты.{0,20}скачиваются|возрастающ.{0,12}купюр|наказанн.{0,12}зим",translated,re.I): return False
+    if re.search(r"\btanker\b",original,re.I) and not re.search(r"танкер",translated,re.I): return False
     if not translated.strip() or re.search(r"конюшн|преступник|загадк|антропическ|символизирован",translated,re.I): return False
     # Conservative: missing or added numeric literals require review.
     return sorted(re.findall(r"\d+",original))==sorted(re.findall(r"\d+",translated))
