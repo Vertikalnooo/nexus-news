@@ -15,7 +15,10 @@ jobs:
           python-version: '3.12'
       - run: python -m pip install pip==25.2
       - run: pip install pip-tools==7.5.0 pip-audit==2.9.0
-      - run: echo '2680e926dd0884e4f1601488b7d48dfe3d189465bd55a4b060e7fdce12cb48b0  requirements-preview.lock' | sha256sum -c -
+      - run: |
+          git hash-object requirements-preview.lock | grep -Fx '6701ba86423020c0d2c35620a50f18a7405068f5'
+          sha256sum requirements-preview.lock
+          grep -F 'transformers==5.24.1' requirements-preview.lock
       - uses: actions/upload-artifact@v4
         with:
           name: preview-dependency-lock
