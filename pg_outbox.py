@@ -14,7 +14,7 @@ class PgOutbox:
         if not draft_id or preview.get("sent") is not False or preview.get("mode")!="dry-run": raise ValueError("invalid preview")
         key=hashlib.sha256(draft_id.encode()).hexdigest()
         with self.db.transaction():
-            self.db.execute("INSERT INTO nexus.outbox(id,payload) VALUES(%s,%s::jsonb) ON CONFLICT DO NOTHING",(key,json.dumps(preview)))
+            if not self.db.execute("SELECT nexus.enqueue_preview(%s,%s::jsonb)",(key,json.dumps(preview))).fetchone()[0]: return None
         return key
     def dispatch(self,key,api,*,approved=False):
         if type(api) is not MockTelegram or approved is not True: return "disabled"
