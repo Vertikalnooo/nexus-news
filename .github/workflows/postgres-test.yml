@@ -41,7 +41,7 @@ jobs:
           docker exec -i nexus-pg psql -v ON_ERROR_STOP=1 -U postgres < migrations/014_commit_guard.sql
           docker exec -i nexus-pg psql -v ON_ERROR_STOP=1 -U postgres < migrations/015_mock_state_machine.sql
           docker exec -i nexus-pg psql -v ON_ERROR_STOP=1 -U postgres < migrations/016_mock_capability.sql
-      - run: python -m unittest -v test_postgres_integration test_roles test_pg_outbox test_runtime_integration test_gemini_budget test_preview_session test_write_gate
+      - run: python -m unittest -v test_postgres_integration test_roles test_pg_outbox test_runtime_integration test_gemini_budget test_preview_session test_write_gate test_gateway_capability
         env:
           NEXUS_TEST_DSN: postgresql://postgres:local-test-only@localhost:5432/postgres
           PGSSLROOTCERT: ${{ runner.temp }}/nexus-pg/server.crt
