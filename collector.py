@@ -21,6 +21,10 @@ def score(item):
     rules=[(35,r'\b(rate cut|rate hike|interest rates|ceasefire|earthquake|sanctions)\b'),(25,r'\b(bitcoin|ethereum|inflation|central bank|artificial intelligence|openai|bankruptcy)\b'),(15,r'\b(launch|regulation|acquisition|election|earnings)\b')]
     if re.search(r'\b(regulatory approval|regulations?|tokenized ipo|central bank|rate decision|elections?|sanctions|ceasefire)\b',title): rules.append((35,r'.+'))
     if re.search(r'\b(binance|ethereum|bitcoin|anthropic|openai|stablecoin|blockchain|etf)\b',title) and re.search(r'\b(launch|rollout|approval|regulations?|drops below|shut down|delay|delays)\b',title): rules.append((25,r'.+'))
+    if re.search(r'\b(top court|supreme court)\b',title) and re.search(r'\b(upholds?|overturns?|rules?|ban)\b',title): rules.append((35,r'.+'))
+    if re.search(r'\b(war|invasion|peace talks|ceasefire)\b',title) and re.search(r'\b(kyiv|ukraine|russia|agreement|winter|negotiations)\b',title): rules.append((35,r'.+'))
+    if re.search(r'\b(final pitch for votes|election results|wins election)\b',title): rules.append((35,r'.+'))
+    if re.search(r'\b(young people on housing|self-care ritual)\b',title): rules.append((-30,r'.+'))
     penalty=30 if re.search(r'\b(opinion|sponsored|advertisement|giveaway|price prediction)\b',title) else 0
     return max(0,min(100, 20+sum(weight for weight, pattern in rules if re.search(pattern,title))-penalty))
 
