@@ -33,7 +33,8 @@ jobs:
           docker exec -i nexus-pg psql -v ON_ERROR_STOP=1 -U postgres < migrations/006_outbox.sql
           docker exec -i nexus-pg psql -v ON_ERROR_STOP=1 -U postgres < migrations/007_outbox_roles.sql
           docker exec -i nexus-pg psql -v ON_ERROR_STOP=1 -U postgres < migrations/008_switch_guard.sql
-      - run: python -m unittest -v test_postgres_integration test_roles test_pg_outbox test_runtime_integration
+          docker exec -i nexus-pg psql -v ON_ERROR_STOP=1 -U postgres < migrations/009_gemini_budget.sql
+      - run: python -m unittest -v test_postgres_integration test_roles test_pg_outbox test_runtime_integration test_gemini_budget
         env:
           NEXUS_TEST_DSN: postgresql://postgres:local-test-only@localhost:5432/postgres
           PGSSLROOTCERT: ${{ runner.temp }}/nexus-pg/server.crt
