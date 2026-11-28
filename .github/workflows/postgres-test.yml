@@ -31,6 +31,7 @@ jobs:
           docker exec -i nexus-pg psql -v ON_ERROR_STOP=1 -U postgres < migrations/004_budget_function.sql
           docker exec -i nexus-pg psql -v ON_ERROR_STOP=1 -U postgres < migrations/005_budget_owner.sql
           docker exec -i nexus-pg psql -v ON_ERROR_STOP=1 -U postgres < migrations/006_outbox.sql
+          docker exec -i nexus-pg psql -v ON_ERROR_STOP=1 -U postgres < migrations/007_outbox_roles.sql
       - run: python -m unittest -v test_postgres_integration test_roles test_pg_outbox
         env:
           NEXUS_TEST_DSN: postgresql://postgres:local-test-only@localhost:5432/postgres
