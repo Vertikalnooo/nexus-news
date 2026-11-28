@@ -10,6 +10,8 @@ class RuntimeIntegration(unittest.TestCase):
         from email.utils import format_datetime
         with psycopg.connect(os.environ["NEXUS_TEST_DSN"],sslmode="verify-full",autocommit=True) as admin:
             admin.execute("DELETE FROM nexus.run_budget")
+            admin.execute("DELETE FROM nexus.preview_session")
+            admin.execute("INSERT INTO nexus.preview_session(singleton,starts_at) VALUES(true,clock_timestamp())")
             admin.execute("UPDATE nexus.publication_control SET enabled=false")
         store=PostgresStorage(os.environ["NEXUS_TEST_DSN"])
         store.db.execute("SET ROLE nexus_preview")
