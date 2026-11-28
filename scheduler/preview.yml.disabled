@@ -25,6 +25,7 @@ jobs:
       - run: .preview-venv/bin/python runtime.py
         env:
           NEXUS_PREVIEW_ENABLED: 'true'
+          NEXUS_PREVIEW_START_UTC: ${{ vars.NEXUS_PREVIEW_START_UTC }}
           NEXUS_DATABASE_URL: ${{ secrets.NEXUS_DATABASE_URL }}
           NEXUS_OPUS_MODEL: model
           NEXUS_PREPARE_MODEL: 'false'
