@@ -32,5 +32,7 @@ def run(sources, storage, loader, primary=None, fallback=None, calendar_data=Non
             saved+=storage.save(draft)
     if outbox is not None:
         for draft in storage.pending():
-            outbox.enqueue(draft.get("title_key") or draft["url"],draft["preview"])
+            preview=draft.get("preview")
+            if not isinstance(preview,dict) or preview.get("mode")!="dry-run" or preview.get("sent") is not False: continue
+            outbox.enqueue(draft.get("title_key") or draft["url"],preview)
     return {"saved":saved,"rendered":rendered,"translation_attempts":attempts,"failed_sources":failures,"publication_enabled":False}
