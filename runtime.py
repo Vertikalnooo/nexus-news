@@ -19,6 +19,9 @@ def main():
     sources=json.loads(Path(__file__).with_name("sources.json").read_text())
     storage=PostgresStorage(dsn)
     try:
+        if not storage.db.execute('SELECT nexus.reserve_preview_session()').fetchone()[0]:
+            print(json.dumps({"status":"session_denied"}))
+            return
         if not storage.reserve_run():
             print(json.dumps({"status":"budget_denied"}))
             return
