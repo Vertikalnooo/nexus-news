@@ -8,6 +8,7 @@ class PgOutboxTests(unittest.TestCase):
         return psycopg.connect(os.environ["NEXUS_TEST_DSN"],sslmode="verify-full",autocommit=True)
     def test_concurrent_and_switch(self):
         with self.connect() as db:
+            db.execute("INSERT INTO nexus.preview_session(singleton,starts_at,runs) VALUES(true,clock_timestamp(),1) ON CONFLICT(singleton) DO UPDATE SET starts_at=EXCLUDED.starts_at,runs=1")
             q=PgOutbox(db)
             key=q.enqueue(str(uuid.uuid4()),dict(mode="dry-run",sent=False))
             self.assertEqual(q.dispatch(key,MockTelegram(),approved=True),"disabled")
