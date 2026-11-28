@@ -1,0 +1,10 @@
+BEGIN;
+CREATE ROLE nexus_budget_owner NOLOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOINHERIT NOREPLICATION NOBYPASSRLS;
+GRANT USAGE ON SCHEMA nexus TO nexus_budget_owner;
+GRANT SELECT, INSERT, UPDATE ON nexus.run_budget TO nexus_budget_owner;
+GRANT CREATE ON SCHEMA nexus TO nexus_budget_owner;
+ALTER FUNCTION nexus.reserve_run() OWNER TO nexus_budget_owner;
+REVOKE CREATE ON SCHEMA nexus FROM nexus_budget_owner;
+REVOKE ALL ON FUNCTION nexus.reserve_run() FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION nexus.reserve_run() TO nexus_preview;
+COMMIT;

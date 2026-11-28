@@ -1,0 +1,56 @@
+name: PostgreSQL integration
+on: [pull_request]
+permissions:
+  contents: read
+jobs:
+  postgres:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install 'psycopg[binary]>=3.2,<4'
+      - name: Isolated TLS database
+        run: |
+          mkdir -p "$RUNNER_TEMP/nexus-pg"
+          cd "$RUNNER_TEMP/nexus-pg"
+          openssl req -x509 -newkey rsa:2048 -nodes -days 1 -subj /CN=localhost -addext subjectAltName=DNS:localhost -keyout server.key -out server.crt
+          chmod 600 server.key
+          docker run -d --name nexus-pg -p 127.0.0.1:5432:5432 -e POSTGRES_PASSWORD=local-test-only -v "$PWD:/certs:ro" postgres:17 sh -c 'cp /certs/server.key /tmp/server.key; cp /certs/server.crt /tmp/server.crt; chown postgres:postgres /tmp/server.key /tmp/server.crt; chmod 600 /tmp/server.key; exec docker-entrypoint.sh postgres -c ssl=on -c ssl_cert_file=/tmp/server.crt -c ssl_key_file=/tmp/server.key'
+          for i in {1..30}; do docker exec nexus-pg pg_isready -U postgres && break; sleep 2; done
+          docker exec -i nexus-pg psql -v ON_ERROR_STOP=1 -U postgres < "$GITHUB_WORKSPACE/schema.sql"
+      - name: Repeat migration
+        run: |
+          docker exec -i nexus-pg psql -v ON_ERROR_STOP=1 -U postgres < migrations/002_run_budget.sql
+          docker exec -i nexus-pg psql -v ON_ERROR_STOP=1 -U postgres < migrations/002_run_budget.sql
+      - name: Apply restricted role migrations
+        run: |
+          docker exec -i nexus-pg psql -v ON_ERROR_STOP=1 -U postgres < migrations/003_preview_roles.sql
+          docker exec -i nexus-pg psql -v ON_ERROR_STOP=1 -U postgres < migrations/004_budget_function.sql
+          docker exec -i nexus-pg psql -v ON_ERROR_STOP=1 -U postgres < migrations/005_budget_owner.sql
+          docker exec -i nexus-pg psql -v ON_ERROR_STOP=1 -U postgres < migrations/006_outbox.sql
+          docker exec -i nexus-pg psql -v ON_ERROR_STOP=1 -U postgres < migrations/007_outbox_roles.sql
+          docker exec -i nexus-pg psql -v ON_ERROR_STOP=1 -U postgres < migrations/008_switch_guard.sql
+          docker exec -i nexus-pg psql -v ON_ERROR_STOP=1 -U postgres < migrations/009_gemini_budget.sql
+          docker exec -i nexus-pg psql -v ON_ERROR_STOP=1 -U postgres < migrations/010_preview_session.sql
+          docker exec -i nexus-pg psql -v ON_ERROR_STOP=1 -U postgres < migrations/011_gemini_minute.sql
+          docker exec -i nexus-pg psql -v ON_ERROR_STOP=1 -U postgres < migrations/012_session_deadline.sql
+          docker exec -i nexus-pg psql -v ON_ERROR_STOP=1 -U postgres < migrations/013_preview_write_gate.sql
+          docker exec -i nexus-pg psql -v ON_ERROR_STOP=1 -U postgres < migrations/014_commit_guard.sql
+          docker exec -i nexus-pg psql -v ON_ERROR_STOP=1 -U postgres < migrations/015_mock_state_machine.sql
+          docker exec -i nexus-pg psql -v ON_ERROR_STOP=1 -U postgres < migrations/016_mock_capability.sql
+          docker exec -i nexus-pg psql -v ON_ERROR_STOP=1 -U postgres < migrations/017_gateway_role.sql
+          docker exec -i nexus-pg psql -v ON_ERROR_STOP=1 -U postgres < migrations/018_gateway_journal.sql
+      - run: python -m unittest -v test_postgres_integration test_roles test_pg_outbox test_runtime_integration test_gemini_budget test_preview_session test_write_gate test_gateway_capability test_gateway_faults test_journal_gateway test_commit_disconnect
+        env:
+          NEXUS_TEST_DSN: postgresql://postgres:local-test-only@localhost:5432/postgres
+          PGSSLROOTCERT: ${{ runner.temp }}/nexus-pg/server.crt
+      - name: Permanent isolated cutover
+        run: |
+          docker exec -i nexus-pg psql -v ON_ERROR_STOP=1 -U postgres < migrations/019_gateway_cutover.sql
+          python -m unittest -v test_gateway_cutover test_runtime_integration test_commit_disconnect
+        env:
+          NEXUS_TEST_DSN: postgresql://postgres:local-test-only@localhost:5432/postgres
+          PGSSLROOTCERT: ${{ runner.temp }}/nexus-pg/server.crt

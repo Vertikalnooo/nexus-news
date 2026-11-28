@@ -1,0 +1,22 @@
+name: OPUS smoke
+on: [pull_request]
+permissions:
+  contents: read
+jobs:
+  translate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install 'torch==2.13.0+cpu' --index-url https://download.pytorch.org/whl/cpu
+      - run: pip install 'transformers==5.10.0' sentencepiece==0.2.1 sacremoses==0.1.1
+      - run: |
+          python scripts/prepare_model.py
+          python -c "from providers import Opus; import re; t=Opus('model')('The central bank kept interest rates unchanged.'); assert re.search('[А-Яа-я]',t); print(t)"
+
+      - run: python e2e_preview.py

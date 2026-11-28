@@ -1,0 +1,19 @@
+[
+  {
+    "name": "FRED",
+    "url": "https://fred.stlouisfed.org/docs/api/fred/",
+    "status": "candidate",
+    "requires_key": true
+  },
+  {
+    "name": "BEA",
+    "url": "https://apps.bea.gov/api/",
+    "status": "candidate",
+    "requires_key": true
+  },
+  {
+    "name": "BLS",
+    "url": "https://www.bls.gov/developers/",
+    "status": "candidate"
+  }
+]

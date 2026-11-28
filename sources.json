@@ -1,0 +1,32 @@
+[
+  {
+    "name": "BBC",
+    "url": "https://feeds.bbci.co.uk/news/world/rss.xml",
+    "category": "world"
+  },
+  {
+    "name": "Federal Reserve",
+    "url": "https://www.federalreserve.gov/feeds/press_all.xml",
+    "category": "economy"
+  },
+  {
+    "name": "TechCrunch",
+    "url": "https://techcrunch.com/feed/",
+    "category": "technology"
+  },
+  {
+    "name": "BBC Business",
+    "url": "https://feeds.bbci.co.uk/news/business/rss.xml",
+    "category": "business"
+  },
+  {
+    "name": "BBC Technology",
+    "url": "https://feeds.bbci.co.uk/news/technology/rss.xml",
+    "category": "technology"
+  },
+  {
+    "name": "Cointelegraph",
+    "url": "https://cointelegraph.com/rss",
+    "category": "crypto"
+  }
+]
