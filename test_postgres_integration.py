@@ -4,8 +4,9 @@ from cloud_storage import PostgresStorage
 class PostgresTests(unittest.TestCase):
     def test_restart_and_dedup(self):
         dsn=os.environ["NEXUS_TEST_DSN"]
-        draft={"url":"https://example.org/integration","text":"Тест"}
+        draft={"url":"https://example.org/integration","text":"Тест","preview":{"mode":"dry-run","sent":False},"publication_eligible":False}
         s=PostgresStorage(dsn)
+        s.db.execute("INSERT INTO nexus.preview_session(singleton,starts_at,runs) VALUES(true,clock_timestamp(),1) ON CONFLICT(singleton) DO UPDATE SET starts_at=EXCLUDED.starts_at,runs=1")
         self.assertTrue(s.save(draft)); s.close()
         s=PostgresStorage(dsn)
         self.assertFalse(s.save(draft)); self.assertIn(draft,s.pending()); s.close()
