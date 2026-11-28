@@ -21,12 +21,12 @@ class PgOutbox:
         with self.db.transaction():
             enabled=self.db.execute("SELECT nexus.lock_publication_switch()").fetchone()
             if not enabled or not enabled[0]: return "disabled"
-            row=self.db.execute("UPDATE nexus.outbox SET state='unknown' WHERE id=%s AND state='pending' RETURNING payload",(key,)).fetchone()
-        if row is None: return "blocked"
+            row=self.db.execute("SELECT nexus.claim_mock(%s)",(key,)).fetchone()
+        if row is None or row[0] is None: return "blocked"
         with self.db.transaction():
             enabled=self.db.execute("SELECT nexus.lock_publication_switch()").fetchone()
             if not enabled or not enabled[0]: return "unknown"
             try: result=api.send(row[0])
             except Exception: return "unknown"
-            self.db.execute("UPDATE nexus.outbox SET state='simulated',message_id=%s WHERE id=%s AND state='unknown'",(result,key))
+            if not self.db.execute("SELECT nexus.finish_mock(%s,%s)",(key,result)).fetchone()[0]: return "unknown"
         return "simulated"
