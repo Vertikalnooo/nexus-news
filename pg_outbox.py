@@ -1,5 +1,5 @@
 """Mock-only persistent outbox; never imports a network transport."""
-import json,hashlib
+import json,hashlib,secrets
 class MockTelegram:
     def __init__(self, outcome="ok"):
         self.outcome=outcome
@@ -18,15 +18,16 @@ class PgOutbox:
         return key
     def dispatch(self,key,api,*,approved=False):
         if type(api) is not MockTelegram or approved is not True: return "disabled"
+        token=secrets.token_bytes(32)
         with self.db.transaction():
             enabled=self.db.execute("SELECT nexus.lock_publication_switch()").fetchone()
             if not enabled or not enabled[0]: return "disabled"
-            row=self.db.execute("SELECT nexus.claim_mock(%s)",(key,)).fetchone()
+            row=self.db.execute("SELECT nexus.claim_mock(%s,%s)",(key,hashlib.sha256(token).digest())).fetchone()
         if row is None or row[0] is None: return "blocked"
         with self.db.transaction():
             enabled=self.db.execute("SELECT nexus.lock_publication_switch()").fetchone()
             if not enabled or not enabled[0]: return "unknown"
             try: result=api.send(row[0])
             except Exception: return "unknown"
-            if not self.db.execute("SELECT nexus.finish_mock(%s,%s)",(key,result)).fetchone()[0]: return "unknown"
+            if not self.db.execute("SELECT nexus.finish_mock(%s,%s,%s)",(key,token,result)).fetchone()[0]: return "unknown"
         return "simulated"
