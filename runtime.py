@@ -5,7 +5,8 @@ from collector import fetch
 from pipeline import run
 from cloud_storage import PostgresStorage
 from providers import Opus
-from pg_outbox import PgOutbox
+from gateway_adapter import GatewayAdapter
+from gateway_client import request
 from preview_window import allowed
 from deadline import deadline, DeadlineExpired
 from time import monotonic
@@ -32,7 +33,8 @@ def main():
         remaining=storage.db.execute("SELECT nexus.preview_remaining()").fetchone()[0]
         with deadline(min(540,remaining-(monotonic()-before))):
             model=Opus(os.environ["NEXUS_OPUS_MODEL"])
-            print(json.dumps(run(sources,storage,fetch,fallback=model,outbox=PgOutbox(storage.db),now=datetime.now(timezone.utc))))
+            adapter=GatewayAdapter(storage,request)
+            print(json.dumps(run(sources,adapter,fetch,fallback=model,outbox=adapter,now=datetime.now(timezone.utc))))
     except DeadlineExpired:
         print(json.dumps({"status":"deadline_expired"}))
     finally: storage.close()
