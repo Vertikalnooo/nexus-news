@@ -8,3 +8,12 @@ def eligible_for_review(original, translated):
 def publication_eligible(draft):
     # No trusted editorial approval mechanism yet.
     return False
+
+def independent_review(original, translated, verifier=None):
+    if not eligible_for_review(original,translated): return "rejected"
+    if verifier is None: return "unverified"
+    try:
+        result=verifier(original,translated)
+        return "candidate_verified" if result is True else "rejected"
+    except Exception:
+        return "unverified"
