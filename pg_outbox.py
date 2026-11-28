@@ -19,12 +19,14 @@ class PgOutbox:
     def dispatch(self,key,api,*,approved=False):
         if type(api) is not MockTelegram or approved is not True: return "disabled"
         with self.db.transaction():
-            enabled=self.db.execute("SELECT enabled FROM nexus.publication_control WHERE singleton FOR UPDATE").fetchone()
+            enabled=self.db.execute("SELECT enabled FROM nexus.publication_control WHERE singleton FOR SHARE").fetchone()
             if not enabled or not enabled[0]: return "disabled"
             row=self.db.execute("UPDATE nexus.outbox SET state='unknown' WHERE id=%s AND state='pending' RETURNING payload",(key,)).fetchone()
         if row is None: return "blocked"
-        try: result=api.send(row[0])
-        except Exception: return "unknown"
         with self.db.transaction():
+            enabled=self.db.execute("SELECT enabled FROM nexus.publication_control WHERE singleton FOR SHARE").fetchone()
+            if not enabled or not enabled[0]: return "unknown"
+            try: result=api.send(row[0])
+            except Exception: return "unknown"
             self.db.execute("UPDATE nexus.outbox SET state='simulated',message_id=%s WHERE id=%s AND state='unknown'",(result,key))
         return "simulated"
