@@ -1,15 +1,18 @@
 import unittest,os,uuid,secrets,hashlib
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock,patch
+from types import ModuleType,SimpleNamespace
+import sys
 class GatewayFaultTests(unittest.TestCase):
     def test_ambiguous_commit_no_retry(self):
         from write_gateway import WriteGateway
-        from psycopg.pq import TransactionStatus
-        import psycopg
-        db=MagicMock(); db.autocommit=True; db.info.transaction_status=TransactionStatus.IDLE
+        driver=ModuleType('psycopg'); pq=ModuleType('psycopg.pq')
+        pq.TransactionStatus=SimpleNamespace(IDLE=0)
+        driver.OperationalError=type('OperationalError',(Exception,),{})
+        db=MagicMock(); db.autocommit=True; db.info.transaction_status=pq.TransactionStatus.IDLE
         db.__enter__.return_value=db
-        db.execute.side_effect=psycopg.OperationalError("synthetic lost commit response")
+        db.execute.side_effect=driver.OperationalError("synthetic lost commit response")
         connect=MagicMock(return_value=db)
-        with self.assertRaises(psycopg.OperationalError):
+        with patch.dict(sys.modules,{'psycopg':driver,'psycopg.pq':pq}), self.assertRaises(driver.OperationalError):
             WriteGateway(connect).request("enqueue","key",{"mode":"dry-run","sent":False})
         self.assertEqual(db.execute.call_count,1)
         self.assertEqual(connect.call_count,1)
