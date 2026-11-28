@@ -13,7 +13,7 @@ def edit(item, primary, fallback):
             if isinstance(value,str): value=html.unescape(value)
             if isinstance(value,str) and re.search(r"конюшн|преступник|загадк|антропическ|символизирован|точечн.{0,12}торгов",value,re.I): continue
             if not isinstance(value,str) or not 3<=len(value.strip())<=500 or not re.search(r'[А-Яа-яЁё]',value): continue
-            return {"text":value.strip(),"source":item["source"],"url":item["url"],"provider":name,"review_required":True}
+            return {"text":value.strip(),"source":item["source"],"url":item["url"],"provider":name,"review_required":True,"publication_eligible":False,"original_title":item["title"]}
         except Exception:
             continue
     return None
