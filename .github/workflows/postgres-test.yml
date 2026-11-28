@@ -47,3 +47,10 @@ jobs:
         env:
           NEXUS_TEST_DSN: postgresql://postgres:local-test-only@localhost:5432/postgres
           PGSSLROOTCERT: ${{ runner.temp }}/nexus-pg/server.crt
+      - name: Permanent isolated cutover
+        run: |
+          docker exec -i nexus-pg psql -v ON_ERROR_STOP=1 -U postgres < migrations/019_gateway_cutover.sql
+          python -m unittest -v test_gateway_cutover test_runtime_integration test_commit_disconnect
+        env:
+          NEXUS_TEST_DSN: postgresql://postgres:local-test-only@localhost:5432/postgres
+          PGSSLROOTCERT: ${{ runner.temp }}/nexus-pg/server.crt
