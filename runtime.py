@@ -7,6 +7,8 @@ from cloud_storage import PostgresStorage
 from providers import Opus
 from pg_outbox import PgOutbox
 from preview_window import allowed
+from deadline import deadline, DeadlineExpired
+from time import monotonic
 from datetime import datetime,timezone
 def main():
     if os.getenv("NEXUS_PREVIEW_ENABLED")!="true": raise SystemExit("preview disabled")
@@ -26,8 +28,12 @@ def main():
             print(json.dumps({"status":"budget_denied"}))
             return
         if not allowed(start,datetime.now(timezone.utc)): return
-        model=Opus(os.environ["NEXUS_OPUS_MODEL"])
-        if not allowed(start,datetime.now(timezone.utc)): return
-        print(json.dumps(run(sources,storage,fetch,fallback=model,outbox=PgOutbox(storage.db),now=datetime.now(timezone.utc))))
+        before=monotonic()
+        remaining=storage.db.execute("SELECT nexus.preview_remaining()").fetchone()[0]
+        with deadline(min(540,remaining-(monotonic()-before))):
+            model=Opus(os.environ["NEXUS_OPUS_MODEL"])
+            print(json.dumps(run(sources,storage,fetch,fallback=model,outbox=PgOutbox(storage.db),now=datetime.now(timezone.utc))))
+    except DeadlineExpired:
+        print(json.dumps({"status":"deadline_expired"}))
     finally: storage.close()
 if __name__=="__main__": main()
