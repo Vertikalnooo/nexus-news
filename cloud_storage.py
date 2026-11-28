@@ -11,7 +11,7 @@ class PostgresStorage:
         return self.db.execute("SELECT 1 FROM nexus.drafts WHERE url=%s OR payload->>'title_key'=%s",(url,key)).fetchone() is not None
     def save(self,draft):
         with self.db.transaction():
-            return self.db.execute("INSERT INTO nexus.drafts (url,payload) VALUES (%s,%s::jsonb) ON CONFLICT DO NOTHING",(draft["url"],json.dumps(draft,ensure_ascii=False))).rowcount==1
+            return self.db.execute("SELECT nexus.save_preview(%s,%s::jsonb)",(draft["url"],json.dumps(draft,ensure_ascii=False))).fetchone()[0]
     def pending(self):
         return [row[0] for row in self.db.execute("SELECT payload FROM nexus.drafts ORDER BY created_at,url")]
     def close(self):
