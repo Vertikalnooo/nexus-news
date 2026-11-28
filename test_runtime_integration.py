@@ -18,5 +18,5 @@ class RuntimeIntegration(unittest.TestCase):
         with patch.dict(os.environ,{"NEXUS_PREVIEW_ENABLED":"true","NEXUS_PREPARE_MODEL":"false","NEXUS_DATABASE_URL":os.environ["NEXUS_TEST_DSN"],"NEXUS_OPUS_MODEL":"mock"}),patch.object(runtime,"PostgresStorage",return_value=store),patch.object(runtime,"Opus",return_value=lambda x:"Центральный банк и биткоин"),patch.object(runtime,"fetch",return_value=rss):
             runtime.main()
         with psycopg.connect(os.environ["NEXUS_TEST_DSN"],sslmode="verify-full",autocommit=True) as admin:
-            self.assertGreater(admin.execute("SELECT count(*) FROM nexus.outbox WHERE state='pending'").fetchone()[0],0)
+            self.assertGreater(admin.execute("SELECT count(*) FROM nexus.outbox WHERE state='pending' AND payload->>'text' LIKE '%Центральный банк и биткоин%'").fetchone()[0],0)
             self.assertFalse(admin.execute("SELECT enabled FROM nexus.publication_control").fetchone()[0])
