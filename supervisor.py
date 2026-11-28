@@ -1,8 +1,12 @@
 """Linux preview supervisor; no scheduler activation."""
-import os,signal,subprocess,sys,time
+import os,signal,subprocess,sys,time,ctypes
 def supervise(argv,seconds):
     if seconds<=0: return 124
-    child=subprocess.Popen(argv,start_new_session=True)
+    parent=os.getpid()
+    def bind_parent():
+        libc=ctypes.CDLL(None,use_errno=True)
+        if libc.prctl(1,signal.SIGKILL,0,0,0)!=0 or os.getppid()!=parent: os._exit(125)
+    child=subprocess.Popen(argv,start_new_session=True,preexec_fn=bind_parent)
     try:
         return child.wait(timeout=seconds)
     except subprocess.TimeoutExpired:
