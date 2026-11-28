@@ -25,3 +25,4 @@ jobs:
       - run: bash scripts/prepare_preview.sh
       - run: .preview-venv/bin/python scripts/prepare_model.py
       - run: .preview-venv/bin/python e2e_preview.py
+      - run: .preview-venv/bin/python editorial_sample.py
